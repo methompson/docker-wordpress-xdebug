@@ -1,0 +1,49 @@
+version: '3'
+services:
+  db:
+    container_name: db
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - 3306:3306
+    restart: always
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+      MYSQL_ROOT_PASSWORD: test
+
+  wordpress:
+    container_name: wp-debug
+    build: .
+    depends_on:
+      - db
+    image: wordpress:latest
+    restart: always
+    volumes:
+      - ./wp:/var/www/html/wp
+      - ./xdebug.ini:/usr/local/etc/php/conf.d/xdebug-2.ini
+    ports:
+      - 8080:80
+      - 9000:9000
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      XDEBUG_CONFIG: remote_host=10.1.10.17
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    links:
+      - db:mysql
+    ports:
+      - 8181:80
+    environment:
+      MYSQL_USERNAME: wordpress
+      MYSQL_ROOT_PASSWORD: wordpress
+
+
+volumes:
+  db_data:
